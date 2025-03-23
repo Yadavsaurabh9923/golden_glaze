@@ -6,5 +6,6 @@ export default defineConfig({
   base: '/',
   server: {
     historyApiFallback: true // Ensures proper fallback for SPA routing
-  }
+  },
+  
 });
