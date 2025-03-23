@@ -10,6 +10,7 @@ import {
 } from '@mui/joy';
 import {last_updated,support_email,support_phone} from "./configs"
 
+
 const TermsAndConditions = () => {
   return (
     <div className="container mx-auto px-1 py-8 max-w-3xl">
