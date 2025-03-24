@@ -12,6 +12,7 @@ import Typography from '@mui/joy/Typography';
 import ModalClose from '@mui/joy/ModalClose';
 import logo from '../assets/images/logo.jpeg'
 import Link from '@mui/joy/Link';
+import Divider from '@mui/material/Divider';
 
 export default function DrawerScrollable({isDrawerOpen,setIsDrawerOpen}) {
 
@@ -27,6 +28,20 @@ export default function DrawerScrollable({isDrawerOpen,setIsDrawerOpen}) {
         </DialogTitle>
         <DialogContent>
           <List>
+              <ListItem key={"Terms & Conditions"}>
+                <ListItemButton href="/" component={Link}>
+                    <Link href="/">Home</Link>
+                </ListItemButton>
+              </ListItem>
+
+              <ListItem key={"Terms & Conditions"}>
+                <ListItemButton href="/your-bookings" component={Link}>
+                    <Link href="/your-bookings">Your Bookings</Link>
+                </ListItemButton>
+              </ListItem>
+
+            <Divider></Divider>
+            
               <ListItem key={"Terms & Conditions"}>
                 <ListItemButton href="/terms-and-conditions" component={Link}>
                     <Link href="/terms-and-conditions">Terms & Conditions</Link>
@@ -58,7 +73,7 @@ export default function DrawerScrollable({isDrawerOpen,setIsDrawerOpen}) {
               </ListItem>
           </List>
         </DialogContent>
-        <Box
+        {/* <Box
           sx={{
             display: 'flex',
             gap: 1,
@@ -73,7 +88,7 @@ export default function DrawerScrollable({isDrawerOpen,setIsDrawerOpen}) {
             <Typography level="title-md">Yadav, Saurabh</Typography>
             <Typography level="body-sm">joined 20 Jun 2023</Typography>
           </div>
-        </Box>
+        </Box> */}
       </Drawer>
     </React.Fragment>
   );

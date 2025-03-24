@@ -7,12 +7,14 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import RefundsAndCancellations from './pages/RefundsAndCancellations';
 import ShippingDeliveryPolicy from './pages/ShippingAndDelivery'
 import ContactUs from './pages/ContactUs'
+import UserBookings from './components/userBookings';
 
 function App() {
   return (
     <CssVarsProvider>
       <Routes>
         <Route path="/" element={<BasicGrid />} />
+        <Route path="/your-bookings" element={<UserBookings />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/refunds-cancellations" element={<RefundsAndCancellations />} />

@@ -9,11 +9,13 @@ import {
   Button
 } from '@mui/joy';
 import {last_updated,support_email,support_phone,support_address} from "./configs"
+import Header from '../components/Header'
 
 const PrivacyPolicy = () => {
   return (
+    <><Header></Header>
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <Breadcrumbs sx={{ ml: -1 }}>
+      <Breadcrumbs sx={{ ml: -1, mt:8}}>
         <Link component={Link} to="/" variant="plain" color="neutral">Home</Link>
         <Typography>Privacy Policy</Typography>
       </Breadcrumbs>
@@ -138,7 +140,7 @@ const PrivacyPolicy = () => {
       <Typography level="body-sm" sx={{ mt: 2, mb:5 }}>
         By using Golden Glaze, you acknowledge having read and agreed to this Privacy Policy.
       </Typography>
-    </div>
+    </div></>
   );
 };
 

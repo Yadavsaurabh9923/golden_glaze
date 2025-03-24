@@ -11,6 +11,7 @@ import {
   Breadcrumbs
 } from '@mui/joy';
 import emailjs from 'emailjs-com';
+import Header from '../components/Header'
 
 const ContactUs = () => {
     const imageUrl = `${window.location.origin}/logo.jpeg`;
@@ -53,8 +54,9 @@ const ContactUs = () => {
   };
 
   return (
+    <><Header></Header>
     <Box className="container mx-auto px-4 py-8 max-w-3xl">
-      <Breadcrumbs sx={{ mb: 0, ml: -1 }}>
+      <Breadcrumbs sx={{ mb: 0, ml: -1, mt:8}}>
       <Link component={Link} to="/" variant="plain" color="neutral">
           Home
         </Link>
@@ -124,7 +126,7 @@ const ContactUs = () => {
           {status}
         </Typography>
       )}
-    </Box>
+    </Box></>
   );
 };
 

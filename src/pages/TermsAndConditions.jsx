@@ -9,12 +9,14 @@ import {
   Button
 } from '@mui/joy';
 import {last_updated,support_email,support_phone} from "./configs"
-
+import Header from '../components/Header'
 
 const TermsAndConditions = () => {
   return (
+    <>
+    <Header></Header>
     <div className="container mx-auto px-1 py-8 max-w-3xl">
-      <Breadcrumbs sx={{ ml: -1 }}>
+      <Breadcrumbs sx={{ ml: -1,mt: 8}}>
         <Link component={Link} to="/" variant="plain" color="neutral">
           Home
         </Link>
@@ -124,6 +126,7 @@ const TermsAndConditions = () => {
       </Typography>
       
     </div>
+    </>
   );
 };
 
