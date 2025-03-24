@@ -17,6 +17,7 @@ import Box from '@mui/material/Box';
 import CheckoutModal from './CheckoutModal';
 import LinearProgress from '@mui/joy/LinearProgress';
 import { Typography } from '@mui/joy';
+import { BASE_URL } from './BaseConfig';
 
 
 const Item = styled(Sheet)(({ theme }) => ({
@@ -71,9 +72,9 @@ export default function BasicGrid() {
     const fetchAllData = async () => {
       try {
         const [configsResponse, bookingsResponse, ratesResponse] = await Promise.all([
-          fetch('https://golden-glaze-backend.onrender.com/configs/'),
-          fetch('https://golden-glaze-backend.onrender.com/get_all_bookings/'),
-          fetch('https://golden-glaze-backend.onrender.com/rates/')
+          fetch(`${BASE_URL}/configs/`),
+          fetch(`${BASE_URL}/get_all_bookings/`),
+          fetch(`${BASE_URL}/rates/`)
         ]);
   
         // Check all responses

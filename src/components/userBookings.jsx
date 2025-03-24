@@ -14,6 +14,7 @@ import Button from '@mui/joy/Button';
 import Header from './Header';
 import LinearProgress from '@mui/joy/LinearProgress';
 import Chip from '@mui/joy/Chip';
+import { BASE_URL } from './BaseConfig';
 
 export default function UserBookings() {
   const [bookings, setBookings] = useState([]);
@@ -31,7 +32,7 @@ export default function UserBookings() {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/booking/${searchTerm}`);
+      const response = await fetch(`${BASE_URL}/${searchTerm}`);
       if (!response.ok) throw new Error('No bookings found');
 
       const data = await response.json();
