@@ -58,10 +58,12 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
       >
         {slotValue.map((slot) => {
           const checked = localSelectedSlots.some(s => s.label === slot.label); // Proper check
+          const isDisabled = slot.status !== "Available";
+
           return (
             <Chip
               key={slot.label}
-              variant="plain"
+              variant="solid"
               color={checked ? 'primary' : 'neutral'}
               // startDecorator={checked && <CheckIcon sx={{ zIndex: 1, pointerEvents: 'none' }} />}
               sx={{
@@ -71,17 +73,33 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
                 minWidth: '130px', // Adjust width
                 maxWidth: '200px',
                 borderRadius: 5,
+                backgroundColor: checked 
+                  ? '#006400' // Dark green color
+                  : isDisabled 
+                    ? 'rgba(209, 0, 31, 0.1)' 
+                    : 'transparent',
               }}
             >
               <Checkbox
                 variant="soft"
                 color={checked ? 'success' : 'neutral'}
                 disabled={slot.status !== "Available"}
-                disableIcon
-                overlay
+                disableIcon 
+                overlay = {!isDisabled}
                 label={slot.label}
                 checked={localSelectedSlots.some(s => s.label === slot.label)}
                 onChange={() => handleSlotClick(slot)}
+                sx={{
+                  '& .MuiCheckbox-label': {
+                    color: checked ? '#006400' : 'inherit'
+                  },
+                  '&.Mui-disabled': {
+                    '& .MuiCheckbox-label': { 
+                      color: 'rgba(209, 0, 31, 0.9)',
+                      bgcolor: 'rgba(209, 0, 31, 0.1)'
+                    }
+                  }
+                }}
               />
             </Chip>
           );

@@ -15,11 +15,17 @@ import Header from './Header';
 import LinearProgress from '@mui/joy/LinearProgress';
 import Chip from '@mui/joy/Chip';
 import { BASE_URL } from './BaseConfig';
+import Cookies from 'js-cookie';
 
 export default function UserBookings() {
   const [bookings, setBookings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load user details from cookies on modal open
+  React.useEffect(() => {
+    setSearchTerm(Cookies.get('GoldenGlaze_userPhone') || '');
+  }, []);
 
   const statusColors = {
     confirmed: 'success',
@@ -32,7 +38,7 @@ export default function UserBookings() {
     
     setIsLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/${searchTerm}`);
+      const response = await fetch(`${BASE_URL}/booking/${searchTerm}`);
       if (!response.ok) throw new Error('No bookings found');
 
       const data = await response.json();

@@ -8,12 +8,26 @@ import TabPanel from '@mui/joy/TabPanel';
 import Slot from './Slot'
 
 // Generate Slots
-const generateTimeSlots = (start, end, bookedSlots = [], slotPrices) => {
+const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDate) => {
   const timeSlots = {
     Morning: [],
     Afternoon: [],
     Night: []
   };
+
+  const now = new Date();
+  
+  // Convert selectedDate to Date object if exists
+  const selectedDateObj = selectedDate ? 
+  new Date(selectedDate.split('-').reverse().join('-')) : null;
+
+  // Check if selected date is today
+  const isToday = selectedDateObj ?
+  selectedDateObj.toDateString() === now.toDateString() : false;
+
+  // Get current hour in decimal format (e.g., 16.5 for 4:30 PM)
+  const currentHour = now.getHours() + now.getMinutes()/60;
+
 
   // Add this at the start of generateTimeSlots
   if (isNaN(start) || isNaN(end) || Number(start) >= Number(end)) {
@@ -24,6 +38,18 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices) => {
   let current = start;
 
   while (current < end) {
+    const slotEnd = current + 0.5;
+    let status = "Available";
+
+    // Check if slot is in the past
+    if (isToday && slotEnd <= currentHour) {
+      status = "Past";
+    }
+    // Check if slot is booked
+    else if (bookedSlots.includes(current)) {
+      status = "Booked";
+    }
+    
     let hours = Math.floor(current);
     let minutes = (current - hours) * 60;
 
@@ -41,7 +67,8 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices) => {
     let slot = {
       label: timeLabel,
       value: current,
-      status: bookedSlots.includes(current) ? "Booked" : "Available", // Check if slot is booked
+      status: status,
+      // status: bookedSlots.includes(current) ? "Booked" : "Available", // Check if slot is booked
       price: 400,
     };
 
@@ -63,10 +90,10 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices) => {
   return timeSlots;
 };
 
-export default function SlotSelector({startTime, endTime, selectedSlots, onSlotSelection, slotPrices, bookedSlots }) {
+export default function SlotSelector({startTime, endTime, selectedSlots, onSlotSelection, slotPrices, bookedSlots, selectedDate}) {
   const [index, setIndex] = React.useState(0);
   // Generate Time Slots
-  const [timeSlots, setTimeSlots] = React.useState(generateTimeSlots(startTime, endTime, bookedSlots, slotPrices));
+  const [timeSlots, setTimeSlots] = React.useState(generateTimeSlots(startTime, endTime, bookedSlots, slotPrices, selectedDate));
 
   // Update when bookedSlots change
   React.useEffect(() => {

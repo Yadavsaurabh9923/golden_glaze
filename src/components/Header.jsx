@@ -5,6 +5,7 @@ import Typography from '@mui/joy/Typography';
 import IconButton from '@mui/joy/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import Drawer from './Drawer';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -33,7 +34,7 @@ export default function Header() {
         </IconButton>
 
         {/* Center - Title */}
-        <Typography level="title-lg" sx={{ flexGrow: 1, textAlign: 'left', color: 'white', ml:2}}>
+        <Typography component={Link} to="/" level="title-lg" sx={{ flexGrow: 1, textDecoration: 'None',textAlign: 'left', color: 'white', ml:2}}>
           GOLDEN GLAZE
         </Typography>
 

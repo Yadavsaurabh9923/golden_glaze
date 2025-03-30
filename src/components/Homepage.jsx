@@ -340,7 +340,8 @@ export default function BasicGrid() {
           selectedSlots={selectedSlots} 
           onSlotSelection={handleSlotSelection} 
           slotPrices={slotPrices}
-          bookedSlots={bookedSlots}>
+          bookedSlots={bookedSlots}
+          selectedDate ={selectedDate}>
           </SlotSelector></Item>
       </Grid>)
       }
