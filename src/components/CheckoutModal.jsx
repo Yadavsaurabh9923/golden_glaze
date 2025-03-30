@@ -91,13 +91,14 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
     try{
       const createBookingData = await createBooking("Hold");
 
-      if(createBookingData.detail.length<1){
-        await handlePayment(createBookingData);
-      }
-      else{
+      if (createBookingData?.detail) {
         setAlertBoxMessage(createBookingData.detail);
         setAlertBox(true);
       }
+      else{
+        await handlePayment(createBookingData);
+      }
+
     }
     catch (error) {
       console.error("Error in creating booking:", error);
