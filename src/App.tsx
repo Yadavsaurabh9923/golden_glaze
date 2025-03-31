@@ -11,6 +11,7 @@ import UserBookings from './components/userBookings';
 import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed'
 import customTheme from './components/customTheme'
+import Admin from './components/Admin'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
+        <Route path="/Admin-Golden-Glaze-0367" element={<Admin />} />
       </Routes>
     </CssVarsProvider>
   )
