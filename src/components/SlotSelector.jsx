@@ -8,7 +8,7 @@ import TabPanel from '@mui/joy/TabPanel';
 import Slot from './Slot'
 
 // Generate Slots
-const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDate) => {
+const generateTimeSlots = (start, end, bookedSlots = [], heldSlots = [], slotPrices, selectedDate) => {
   const timeSlots = {
     Morning: [],
     Afternoon: [],
@@ -28,7 +28,6 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDat
   // Get current hour in decimal format (e.g., 16.5 for 4:30 PM)
   const currentHour = now.getHours() + now.getMinutes()/60;
 
-
   // Add this at the start of generateTimeSlots
   if (isNaN(start) || isNaN(end) || Number(start) >= Number(end)) {
     console.error('Invalid time range:', start, end);
@@ -38,7 +37,7 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDat
   let current = start;
 
   while (current < end) {
-    const slotEnd = current + 0.5;
+    const slotEnd = current + 1;
     let status = "Available";
 
     // Check if slot is in the past
@@ -46,15 +45,19 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDat
       status = "Past";
     }
     // Check if slot is booked
-    else if (bookedSlots.includes(current)) {
+    else if (bookedSlots.some(range => current >= range.start && current < range.end)) {
       status = "Booked";
+    }
+    // Check if the slot is on Hold
+    else if (heldSlots.some(range => current >= range.start && current < range.end)) {
+      status = "Hold";
     }
     
     let hours = Math.floor(current);
     let minutes = (current - hours) * 60;
 
     // Format time as "8:00 AM - 8:30 AM"
-    let nextTime = current + 0.5;
+    let nextTime = current + 1;
     let nextHours = Math.floor(nextTime);
     let nextMinutes = (nextTime - nextHours) * 60;
 
@@ -84,21 +87,21 @@ const generateTimeSlots = (start, end, bookedSlots = [], slotPrices, selectedDat
       timeSlots.Night.push(slot);
     }
 
-    current += 0.5; // Move to next 30-minute slot
+    current += 1; // Move to next 1 hour slot
   }
 
   return timeSlots;
 };
 
-export default function SlotSelector({startTime, endTime, selectedSlots, onSlotSelection, slotPrices, bookedSlots, selectedDate}) {
+export default function SlotSelector({startTime, endTime, selectedSlots, onSlotSelection, slotPrices, bookedSlots, heldSlots, selectedDate}) {
   const [index, setIndex] = React.useState(0);
   // Generate Time Slots
-  const [timeSlots, setTimeSlots] = React.useState(generateTimeSlots(startTime, endTime, bookedSlots, slotPrices, selectedDate));
+  const [timeSlots, setTimeSlots] = React.useState(generateTimeSlots(startTime, endTime, bookedSlots, heldSlots, slotPrices, selectedDate));
 
   // Update when bookedSlots change
   React.useEffect(() => {
-    setTimeSlots(generateTimeSlots(startTime, endTime, bookedSlots, slotPrices));
-  }, [bookedSlots, startTime, endTime, slotPrices]);
+    setTimeSlots(generateTimeSlots(startTime, endTime, bookedSlots, heldSlots,slotPrices,selectedDate));
+  }, [bookedSlots, startTime, endTime, slotPrices, selectedDate]);
 
   // Function to update selected slots
   const handleSlotSelection = (slotName, labels, values) => {

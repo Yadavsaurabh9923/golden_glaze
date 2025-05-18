@@ -17,7 +17,8 @@ import Box from '@mui/material/Box';
 import CheckoutModal from './CheckoutModal';
 import LinearProgress from '@mui/joy/LinearProgress';
 import { Typography } from '@mui/joy';
-import { BASE_URL } from './BaseConfig';
+import { BASE_URL,env } from './BaseConfig';
+import SlotLegend from './SlotLegend';
 
 
 const Item = styled(Sheet)(({ theme }) => ({
@@ -67,20 +68,24 @@ export default function BasicGrid() {
 
   // Store Booked Slots
   const [bookedSlots, setBookedSlots] = React.useState([]);
+  const [heldSlots, setHeldSlots] = React.useState([]);
+  const [dataFetch, setDataFetch] = React.useState(false);
 
   React.useEffect(() => {
     const fetchAllData = async () => {
       try {
         const [configsResponse, bookingsResponse, ratesResponse] = await Promise.all([
-          fetch(`${BASE_URL}/configs/`),
-          fetch(`${BASE_URL}/get_all_bookings/`),
-          fetch(`${BASE_URL}/rates/`)
+          fetch(`${BASE_URL}/${env}/get_configs/`),
+          fetch(`${BASE_URL}/${env}/get_all_bookings/`),
+          fetch(`${BASE_URL}/${env}/get_rates/`)
         ]);
-  
+        
         // Check all responses
         if (!configsResponse.ok || !bookingsResponse.ok || !ratesResponse.ok) {
           throw new Error('One or more API requests failed');
         }
+
+        setDataFetch(true);
   
         // Parse all JSON data
         const [configData, bookingsData, ratesData] = await Promise.all([
@@ -91,46 +96,47 @@ export default function BasicGrid() {
         
         // Process configs
         const newOperationalConfigs = {
-          weekday_start: configData.find(c => c.config_name === 'WEEKDAY_START')?.config_value || 5,
-          weekday_end: configData.find(c => c.config_name === 'WEEKDAY_END')?.config_value || 24,
-          weekend_start: configData.find(c => c.config_name === 'WEEKEND_START')?.config_value || 5,
-          weekend_end: configData.find(c => c.config_name === 'WEEKEND_END')?.config_value || 24,
+          weekday_start: configData.data.find(c => c.configName === 'WEEKDAY_START')?.configValue ?? 5,
+          weekday_end: configData.data.find(c => c.configName === 'WEEKDAY_END')?.configValue ?? 24,
+          weekend_start: configData.data.find(c => c.configName === 'WEEKEND_START')?.configValue ?? 5,
+          weekend_end: configData.data.find(c => c.configName === 'WEEKEND_END')?.configValue ?? 24,
         };
 
         // Update operational configs state
         setOperationalConfigs(newOperationalConfigs);
-        setBookings(bookingsData);  // Add state: const [bookings, setBookings] = useState([])
-        setRates(ratesData);        // Add state: const [rates, setRates] = useState([])
+        setBookings(bookingsData.data);  // Add state: const [bookings, setBookings] = useState([])
 
         const weekdayRates = {
-          Morning: Number(configData.find(c => c.config_name === 'WEEKDAY_MORNING_RATE')?.config_value) || 800,
-          Afternoon: Number(configData.find(c => c.config_name === 'WEEKDAY_AFTERNOON_RATE')?.config_value) || 600,
-          Night: Number(configData.find(c => c.config_name === 'WEEKDAY_NIGHT_RATE')?.config_value) || 1000,
+          Morning: Number(ratesData.data.find(c => c.session === 'WEEKDAY_MORNING_RATE')?.rate) || 500,
+          Afternoon: Number(ratesData.data.find(c => c.session === 'WEEKDAY_AFTERNOON_RATE')?.rate) || 500,
+          Night: Number(ratesData.data.find(c => c.session === 'WEEKDAY_NIGHT_RATE')?.rate) || 500,
         };
         
         const weekendRates = {
-          Morning: Number(configData.find(c => c.config_name === 'WEEKEND_MORNING_RATE')?.config_value) || 900,
-          Afternoon: Number(configData.find(c => c.config_name === 'WEEKEND_AFTERNOON_RATE')?.config_value) || 700,
-          Night: Number(configData.find(c => c.config_name === 'WEEKEND_NIGHT_RATE')?.config_value) || 1200,
+          Morning: Number(ratesData.data.find(c => c.session === 'WEEKEND_MORNING_RATE')?.rate) || 500,
+          Afternoon: Number(ratesData.data.find(c => c.session === 'WEEKEND_AFTERNOON_RATE')?.rate) || 500,
+          Night: Number(ratesData.data.find(c => c.session === 'WEEKEND_NIGHT_RATE')?.rate) || 500,
         };
 
         // Now determine day type and set slot prices (assumes selectedDate is already set)
         if (selectedDate) {
           const dayType = getDayType(selectedDate);
           const slotPrices = dayType === 'weekend' ? weekendRates : weekdayRates;
-          setSlotPrices(slotPrices); // if you're maintaining slotPrices in state
         }
 
         // Save the fetched rates as state if needed
-        setRates(ratesData);
+        setRates(ratesData.data);
 
         // Set Booked Slots
-        const extractedTimes = bookingsData.flatMap((booking) => [booking.start_time, booking.end_time]);
-
+        const extractedTimes = bookingsData.data.filter(booking => booking.status === 'Confirmed').map(booking => ({start: booking.start_time,end: booking.end_time}));
         // Use a Set to store only unique values
-        const uniqueSortedTimes = [...new Set(extractedTimes)].sort((a, b) => a - b);
-        setBookedSlots(uniqueSortedTimes);
-  
+        // const uniqueSortedTimes = [...new Set(extractedTimes)].sort((a, b) => a - b);
+
+        const held = bookingsData.data.filter(booking => booking.status === 'Hold').map(booking => ({start: booking.start_time,end: booking.end_time}));
+        setHeldSlots(held)
+        
+        setBookedSlots(extractedTimes);
+        
       } catch (err) {
         setError(err.message);
       } finally {
@@ -148,25 +154,21 @@ export default function BasicGrid() {
         booking.date === selectedDate
       );
       
-      // NEW: Generate all 0.5 increments between start and end times
-      const extractedTimes = filteredBookings.flatMap(booking => {
-        const slots = [];
-        let current = booking.start_time;
-        while (current < booking.end_time) {
-          slots.push(current);
-          current += 0.5;
-        }
-        return slots;
-      });
+      // NEW: Generate all 1 increments between start and end times
+      const extractedTimes = filteredBookings.filter(booking => booking.status === 'Confirmed').map(booking => ({start: booking.start_time,end: booking.end_time}));
 
-      const uniqueSortedTimes = [...new Set(extractedTimes)].sort((a, b) => a - b);
-      setBookedSlots(uniqueSortedTimes);
+      const held = filteredBookings.filter(booking => booking.status === 'Hold').map(booking => ({start: booking.start_time,end: booking.end_time}));
+      
+      // const uniqueSortedTimes = [...new Set(extractedTimes)].sort((a, b) => a - b);
+      setBookedSlots(extractedTimes);
+      setHeldSlots(held)
     } else {
       setBookedSlots([]);
+      setHeldSlots([]);
     }
   }, [selectedDate, bookings]);
 
-  const [dailyHours, setDailyHours] = React.useState({ start: 5, end: 24 });
+  const [dailyHours, setDailyHours] = React.useState({ start: 0, end: 24 });
 
   React.useEffect(() => {
     if (selectedDate) {
@@ -176,7 +178,7 @@ export default function BasicGrid() {
         end: Number(operationalConfigs[`${dayType}_end`])
       });
     } else {
-      setDailyHours({ start: 5, end: 24 });
+      setDailyHours({ start: 0, end: 24 });
     }
   }, [selectedDate, operationalConfigs]); // Add operationalConfigs to dependencies
 
@@ -199,15 +201,15 @@ export default function BasicGrid() {
     const dayType = selectedDate && getDayType(selectedDate) || 'weekday';
     if(dayType === 'weekend'){
       return {
-        Morning: rates.find(r => r.session === 'WEEKEND_MORNING_RATE')?.rate || 900,
-        Afternoon: rates.find(r => r.session === 'WEEKEND_AFTERNOON_RATE')?.rate || 700,
-        Night: rates.find(r => r.session === 'WEEKEND_NIGHT_RATE')?.rate || 1200
+        Morning: rates.find(r => r.session === 'WEEKEND_MORNING_RATE')?.rate || 500,
+        Afternoon: rates.find(r => r.session === 'WEEKEND_AFTERNOON_RATE')?.rate || 500,
+        Night: rates.find(r => r.session === 'WEEKEND_NIGHT_RATE')?.rate || 500
       };
     } else {
       return {
-        Morning: rates.find(r => r.session === 'WEEKDAY_MORNING_RATE')?.rate || 800,
-        Afternoon: rates.find(r => r.session === 'WEEKDAY_AFTERNOON_RATE')?.rate || 600,
-        Night: rates.find(r => r.session === 'WEEKDAY_NIGHT_RATE')?.rate || 1000
+        Morning: rates.find(r => r.session === 'WEEKDAY_MORNING_RATE')?.rate || 500,
+        Afternoon: rates.find(r => r.session === 'WEEKDAY_AFTERNOON_RATE')?.rate || 500,
+        Night: rates.find(r => r.session === 'WEEKDAY_NIGHT_RATE')?.rate || 500
       };
     }
   }, [rates, selectedDate]);
@@ -270,7 +272,7 @@ export default function BasicGrid() {
     const sortedSlots = [...slots].sort((a, b) => a - b);
 
     const isConsecutive = sortedSlots.every((val, index, arr) => 
-      index === 0 || val - arr[index - 1] === 0.5
+      index === 0 || val - arr[index - 1] === 1
     );
 
     return isConsecutive;
@@ -281,11 +283,11 @@ export default function BasicGrid() {
   const handleBooking = () =>{
     // Check total selected slots
     // If slot is one then raise alert saying select minumum 2 slots 
-    if(['morning', 'afternoon', 'night'].reduce((sum, key) => sum + (selectedSlots[key]?.length || 0), 0) < 2){
-      setAlertMessage("Select atleast 2 consecutive slots!")
-      setAlertLabel(true);
-      return;
-    }
+    // if(['morning', 'afternoon', 'night'].reduce((sum, key) => sum + (selectedSlots[key]?.length || 0), 0) < 2){
+    //   setAlertMessage("Select atleast 2 consecutive slots!")
+    //   setAlertLabel(true);
+    //   return;
+    // }
 
     let tempSlotsValues = ['morningValues', 'afternoonValues', 'nightValues'].flatMap(key => selectedSlots[key] || [])
     if(!preBookingChecks(tempSlotsValues)){
@@ -295,7 +297,6 @@ export default function BasicGrid() {
     }
 
     // Check if slots are consecutive
-
 
     setIsModalOpen(true)
   }
@@ -330,6 +331,7 @@ export default function BasicGrid() {
       ): error ? (
         <Grid xs={12}>
           <Item><Typography>Error loading Slot Configuration: {error}</Typography></Item>
+          <Item><Button variant="solid" color="primary" onClick={() => {window.location.reload()}}>Reload Slots</Button></Item>
         </Grid>
       ):
       (<Grid xs={12}>
@@ -337,10 +339,11 @@ export default function BasicGrid() {
           <SlotSelector 
           startTime={dailyHours.start} 
           endTime={dailyHours.end} 
-          selectedSlots={selectedSlots} 
+          selectedSlots={selectedSlots}
           onSlotSelection={handleSlotSelection} 
           slotPrices={slotPrices}
           bookedSlots={bookedSlots}
+          heldSlots={heldSlots}
           selectedDate ={selectedDate}>
           </SlotSelector></Item>
       </Grid>)
@@ -349,6 +352,10 @@ export default function BasicGrid() {
       <Grid xs={12}>
         <Divider></Divider>
       </Grid>
+
+      {dataFetch && <Grid xs={12}>
+        <SlotLegend></SlotLegend>
+      </Grid>}
 
       <Grid xs={12}>
       <ToggleButtonGroup sx={{ width: "100%" }}>
@@ -375,7 +382,7 @@ export default function BasicGrid() {
       <Grid xs={12}>
         <Item>
           <Button endDecorator={<KeyboardArrowRight />} 
-              // disabled={Object.values(selectedSlots).reduce((sum, arr) => sum + arr.length, 0) === 0} 
+              disabled={Object.values(selectedSlots).reduce((sum, arr) => sum + arr.length, 0) === 0} 
               color = 'primary' 
               fullWidth 
               sx={{

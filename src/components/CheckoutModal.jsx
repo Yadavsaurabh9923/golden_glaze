@@ -19,7 +19,7 @@ import Bill from './Bill';
 import logo from '../assets/images/logo.jpeg'
 import AlertWithDecorators from './ErrorAlert'
 import { useNavigate } from 'react-router-dom'; // For routing
-import {BASE_URL} from '../components/BaseConfig'
+import {BASE_URL, env} from '../components/BaseConfig'
 import LinearProgress from '@mui/joy/LinearProgress';
 
 export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice, slotPrices, selectedDate}) {
@@ -89,20 +89,20 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
     setAlertBox(false);
 
     try{
-      const createBookingData = await createBooking("Hold");
+      const {bookingData, responseData} = await createBooking("Hold");
 
-      if (createBookingData?.detail) {
-        setAlertBoxMessage(createBookingData.detail);
+      if (!bookingData || !responseData.data.insertedId || responseData.data.insertedId.length === 0) {
+        setAlertBoxMessage("Booking failed or missing response data");
         setAlertBox(true);
-      }
-      else{
-        await handlePayment(createBookingData);
+        throw new Error("Booking data or response ID is invalid");
+      } else {
+        await handlePayment(bookingData, responseData.data.insertedId);
       }
 
     }
     catch (error) {
       console.error("Error in creating booking:", error);
-      alert("Error processing payment. Try again.");
+      // alert("Error processing payment. Try again.");
     }
 
     setIsLoading(false);
@@ -118,7 +118,7 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
 
     const bookingData = {
       start_time: bookedSlots[0],
-      end_time: (bookedSlots[bookedSlots.length - 1]+0.5),
+      end_time: (bookedSlots[bookedSlots.length - 1] + 1),
       amount: totalPrice,
       email: email || "noemail@example.com", // Default if empty
       phone_number: phone,
@@ -129,7 +129,7 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
     };
 
     try {
-      const response = await fetch(`${BASE_URL}/create_booking/`, {
+      const response = await fetch(`${BASE_URL}/${env}/create_booking/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -138,24 +138,32 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
       });
 
       const responseData = await response.json();
+
+      if(responseData.error){
+        setAlertBoxMessage(responseData.message);
+        setAlertBox(true);
+        setIsLoading(false);
+        return
+      }
   
       if (!response.ok) {
         return responseData
       }
 
-      return responseData;
+      return {
+        bookingData,responseData
+      };
     } 
     catch (error) {
       setAlertBoxMessage(error.message);
-      alert(error.message)
       setAlertBox(true);
       setIsLoading(false);
     }
   }
 
-  const confirmBooking = async (bookingData1) =>{
+  const confirmBooking = async (bookingData1, insertedId) =>{
     try {
-      const response = await fetch(`${BASE_URL}/confirm_booking/`, {
+      const response = await fetch(`${BASE_URL}/${env}/confirm_booking/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -166,27 +174,26 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
       const responseData = await response.json();
 
       if (!response.ok) {
-        await cancelBooking(bookingData1);
+        await cancelBooking(bookingData1, insertedId);
       }
       
     } 
     catch (error) {
       setAlertBoxMessage(error.message);
-      alert(error.message)
       setAlertBox(true);
       setIsLoading(false);
       await cancelBooking(bookingData1);
     }
   }
 
-  const cancelBooking = async (bookingData1) =>{
+  const cancelBooking = async (bookingData1, insertedId) =>{
     try {
-      const response = await fetch(`${BASE_URL}/cancel_booking/`, {
+      const response = await fetch(`${BASE_URL}/${env}/delete_booking_by_id/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(bookingData1),
+        body: JSON.stringify({booking_id: insertedId}),
       });
   
       const result = await response.json();
@@ -199,7 +206,6 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
     } 
     catch (error) {
       setAlertBoxMessage(error.message);
-      alert(error.message)
       setAlertBox(true);
     }
     setIsLoading(false);
@@ -231,7 +237,7 @@ const loadRazorpayScript = () => {
   });
 };
 
-const handlePayment = async (createBookingData) => {
+const handlePayment = async (createBookingData, insertedId) => {
   // Remove validateForm() check since validations are already in completeCheckout
   const isRazorpayLoaded = await loadRazorpayScript();
   if (!isRazorpayLoaded) {
@@ -241,8 +247,8 @@ const handlePayment = async (createBookingData) => {
   }
 
   const options = {
-    key: "rzp_live_MTERReTkQmrdnh", // Replace with your actual Razorpay API Key ORignal Key
-    // key: "rzp_test_kuhZJZX5qOQ9QQ",
+    // key: "rzp_live_MTERReTkQmrdnh", // Replace with your actual Razorpay API Key ORignal Key
+    key: "rzp_test_kuhZJZX5qOQ9QQ",
     amount: totalPrice * 1, // Use totalPrice prop instead of slotDetails
     currency: "INR",
     name: "Golden Glaze Turf",
@@ -250,7 +256,7 @@ const handlePayment = async (createBookingData) => {
     image: logo, // Use imported logo
     handler: async function (response) {
       // Handle successful payment here
-      await confirmBooking(createBookingData);
+      await confirmBooking(createBookingData, insertedId);
       navigate(`/payment-success?transactionId=${transactionId}`);
     },
     prefill: {
@@ -261,11 +267,15 @@ const handlePayment = async (createBookingData) => {
     theme: {
       color: "#0B6BCB",
     },
+    retry: {
+      enabled: false,
+    },
+    timeout: 120,
     modal: {
       escape: false,
       ondismiss: async function () {
         // On dismissal, route to failure page
-        await cancelBooking(createBookingData);
+        await cancelBooking(createBookingData, insertedId);
         navigate(`/payment-failed?transactionId=${transactionId}`);
       },
     },
@@ -274,10 +284,10 @@ const handlePayment = async (createBookingData) => {
   try {
     const razorpayInstance = new window.Razorpay(options);
     razorpayInstance.open();
-    onClose();
+    // onClose();
+    
   } catch (error) {
     console.error("Error initializing Razorpay:", error);
-    alert("Error processing payment. Try again.");
     setIsLoading(false);
   }
 };

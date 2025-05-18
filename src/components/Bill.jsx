@@ -110,8 +110,8 @@ export default function ReceiptAccordion({selectedSlots, totalPrice, slotPrices}
 
           <Grid container spacing={0} sx={{ mt: 1 }}>
 
-            <Grid xs={6}><Typography level="body-sm">Tax:</Typography></Grid>
-            <Grid xs={6}><Typography level="body-sm" textAlign="right">0% ₹{tax.toFixed(2)}</Typography></Grid>
+            <Grid xs={6}><Typography level="body-sm">Tax (inclusive):</Typography></Grid>
+            <Grid xs={6}><Typography level="body-sm" textAlign="right">0% - ₹{tax.toFixed(2)}</Typography></Grid>
 
             <Grid xs={6}><Typography level="body-sm">Discount:</Typography></Grid>
             <Grid xs={6}><Typography level="body-sm" textAlign="right">₹{discount.toFixed(2)}</Typography></Grid>

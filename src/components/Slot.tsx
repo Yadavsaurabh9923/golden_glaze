@@ -47,7 +47,7 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
           size="md"
           variant="solid"
           sx={{ml:1}}
-        >30 mins</Chip>
+        >1 hour</Chip>
       </Typography>
 
       {/* Slot Selection Chips */}
@@ -59,7 +59,7 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
         {slotValue.map((slot) => {
           const checked = localSelectedSlots.some(s => s.label === slot.label); // Proper check
           const isDisabled = slot.status !== "Available";
-
+          const isHeld = slot.status === 'Hold'
           return (
             <Chip
               key={slot.label}
@@ -73,11 +73,9 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
                 minWidth: '130px', // Adjust width
                 maxWidth: '200px',
                 borderRadius: 5,
-                backgroundColor: checked 
-                  ? '#006400' // Dark green color
-                  : isDisabled 
-                    ? 'rgba(209, 0, 31, 0.1)' 
-                    : 'transparent',
+                backgroundColor: checked ? '#006400' // Dark green color
+                  : isHeld ? '#ffdb58'
+                  : isDisabled ? 'rgba(209, 0, 31, 0.1)' : 'transparent'
               }}
             >
               <Checkbox
@@ -95,8 +93,8 @@ export default function Slot({ slotName, slotPrice,slotValue, selectedSlots, onS
                   },
                   '&.Mui-disabled': {
                     '& .MuiCheckbox-label': { 
-                      color: 'rgba(209, 0, 31, 0.9)',
-                      bgcolor: 'rgba(209, 0, 31, 0.1)'
+                      color: !isHeld ? 'rgba(209, 0, 31, 0.9)' : '#000000',
+                      bgcolor: !isHeld ? 'rgba(209, 0, 31, 0.1)' : '#ffdb58'
                     }
                   }
                 }}

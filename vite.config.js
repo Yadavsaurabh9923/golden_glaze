@@ -5,7 +5,10 @@ export default defineConfig({
   plugins: [react()],
   base: '/',
   server: {
-    historyApiFallback: true // Ensures proper fallback for SPA routing
+    host: true,
+    port: 5173,
+    strictPort: true,
+    historyApiFallback: true, // Ensures proper fallback for SPA routing
   },
   
 });
