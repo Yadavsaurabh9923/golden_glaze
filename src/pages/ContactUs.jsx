@@ -12,15 +12,22 @@ import {
 } from '@mui/joy';
 import emailjs from 'emailjs-com';
 import Header from '../components/Header'
+import LinearProgress from '@mui/joy/LinearProgress';
+import Stack from '@mui/joy/Stack';
+import {support_email, support_phone} from './configs'
+import Alert from '@mui/joy/Alert';
+import IconButton from '@mui/joy/IconButton';
+import PlaylistAddCheckCircleRoundedIcon from '@mui/icons-material/PlaylistAddCheckCircleRounded';
 
 const ContactUs = () => {
     const imageUrl = `${window.location.origin}/logo.jpeg`;
+    const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
     name: '',
     email: '',
     subject: '',
-    company_email: 'goldenglaze6@gmail.com',
-    company_phone: '+91-9552990367'
+    company_email: support_email,
+    company_phone: support_phone
 
   });
   const [status, setStatus] = useState('');
@@ -38,18 +45,29 @@ const ContactUs = () => {
     const serviceID = 'service_crhoalh';
     const templateID = 'template_cvv3u1b';
     const userID = 'WQatokEkadCq3PkN9';
+    setStatus('');
+    setLoading(true);
 
-    // EmailJS expects an object with template parameters.
-    // Your EmailJS template should be configured to send the email to yadavsaurabh9923@gmail.com.
+    // For the actual email sending (uncomment when ready):
     emailjs.send(serviceID, templateID, formData, userID)
       .then((result) => {
-        console.log('Email successfully sent!', result.text);
         setStatus('Your message has been sent successfully.');
-        // Optionally reset the form
-        setFormData({ name: '', email: '', subject: '', message: '' });
-      }, (error) => {
+        
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+          company_email: support_email,
+          company_phone: support_phone
+        });
+
+        setLoading(false);
+      })
+      .catch((error) => {
         console.error('There was an error sending the email:', error.text);
         setStatus('An error occurred while sending your message. Please try again later.');
+        setLoading(false);
       });
   };
 
@@ -66,9 +84,20 @@ const ContactUs = () => {
       <Typography level="h1" component="h1" sx={{ mb: 1 }}>
         Contact Us
       </Typography>
-      <Typography level="body-sm" sx={{ mb: 3 }}>
+      <Typography level="body-sm" sx={{ mb: 2 }}>
         Have questions or need assistance? Fill out the form below and we'll get back to you shortly.
       </Typography>
+      
+      {loading && <LinearProgress size="sm" sx={{ mb: 2, color: 'primary' }} />}
+
+      {status && 
+      (<Alert
+        variant="solid"
+        color="success"
+        startDecorator={<PlaylistAddCheckCircleRoundedIcon />}
+        sx={{mb:2}}>
+        {status}
+      </Alert>)}
 
       <Box
         component="form"
@@ -112,20 +141,16 @@ const ContactUs = () => {
           <Textarea
             name="message"
             placeholder="Your message"
-            minRows={4}
+            minRows={3}
             value={formData.message}
             onChange={handleChange}
           />
         </FormControl>
-        <Button type="submit" variant="solid">
+        <Button type="submit" variant="solid" disabled={loading}>
           Send Message
         </Button>
       </Box>
-      {status && (
-        <Typography level="body-sm" sx={{ mt: 2 }}>
-          {status}
-        </Typography>
-      )}
+      
     </Box></>
   );
 };

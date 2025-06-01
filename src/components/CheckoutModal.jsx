@@ -21,6 +21,7 @@ import AlertWithDecorators from './ErrorAlert'
 import { useNavigate } from 'react-router-dom'; // For routing
 import {BASE_URL, env} from '../components/BaseConfig'
 import LinearProgress from '@mui/joy/LinearProgress';
+import {RAZORPAY_LIVE_KEY,RAZORPAY_TEST_KEY} from './BaseConfig'
 
 export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice, slotPrices, selectedDate}) {
   const [name, setName] = React.useState('');
@@ -247,8 +248,8 @@ const handlePayment = async (createBookingData, insertedId) => {
   }
 
   const options = {
-    // key: "rzp_live_MTERReTkQmrdnh", // Replace with your actual Razorpay API Key ORignal Key
-    key: "rzp_test_kuhZJZX5qOQ9QQ",
+    key: RAZORPAY_LIVE_KEY, // Replace with your actual Razorpay API Key ORignal Key
+    // key: RAZORPAY_TEST_KEY,
     amount: totalPrice * 1, // Use totalPrice prop instead of slotDetails
     currency: "INR",
     name: "Golden Glaze Turf",

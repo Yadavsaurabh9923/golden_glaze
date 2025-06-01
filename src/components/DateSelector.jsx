@@ -26,7 +26,7 @@ const generateDates = (numDays) => {
 
 const DateSelector = ({ onDateChange }) => {
   const dates = generateDates(10);
-  const [selectedDate, setSelectedDate] = React.useState(dates[0].fullDate);
+
   const containerRef = React.useRef(null);
   const [showLeftButton, setShowLeftButton] = React.useState(false);
   const [showRightButton, setShowRightButton] = React.useState(false);
@@ -38,6 +38,25 @@ const DateSelector = ({ onDateChange }) => {
       setShowRightButton(scrollWidth > clientWidth + scrollLeft);
     }
   }, []);
+
+  const [selectedDate, setSelectedDate] = React.useState(() => {
+    const itemStr = localStorage.getItem("localSelectedDate");
+  
+    if (itemStr) {
+      try {
+        const item = JSON.parse(itemStr);
+        if (Date.now() < item.expiry) {
+          return new Date(item.value); // still valid
+        } else {
+          localStorage.removeItem("localSelectedDate"); // expired
+        }
+      } catch (e) {
+        console.error("Invalid stored date:", e);
+      }
+    }
+  
+    return new Date(dates[0].fullDate); // fallback
+  });
 
   React.useEffect(() => {
     const container = containerRef.current;
@@ -63,6 +82,17 @@ const DateSelector = ({ onDateChange }) => {
         behavior: 'smooth'
       });
     }
+  };
+
+  const handleLocalSelecetedDate = (dateObj) => {
+    setSelectedDate(dateObj.fullDate);
+    
+    const dataToStore = {
+      value: dateObj.fullDate.toISOString(), // or fullDateObj.toString()
+      expiry: Date.now() + 2* 60 * 1000, // 2 minutes from now
+    };
+
+    localStorage.setItem("localSelectedDate", JSON.stringify(dataToStore));
   };
 
   React.useEffect(() => {
@@ -107,7 +137,7 @@ const DateSelector = ({ onDateChange }) => {
               key={index}
               variant={selectedDate.toDateString() === dateObj.fullDate.toDateString() ? 'solid' : 'soft'}
               color={selectedDate.toDateString() === dateObj.fullDate.toDateString() ? 'primary' : 'neutral'}
-              onClick={() => setSelectedDate(dateObj.fullDate)} 
+              onClick={() => handleLocalSelecetedDate(dateObj)} 
               sx={{
                 minWidth: '80px',
                 border: '1px solid rgba(212, 212, 212, 0.7)',
@@ -115,9 +145,11 @@ const DateSelector = ({ onDateChange }) => {
                 alignItems: 'center',
                 p: 1,
                 flexShrink: 0,
-                transition: 'all 0.2s ease',
+                // transition: 'all 0.4s ease',
                 ...(selectedDate.toDateString() !== dateObj.fullDate.toDateString() && {
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                  backgroundColor: new Date().toDateString() === dateObj.fullDate.toDateString() 
+                  ? 'rgba(255, 255, 255, 0.7)' // Light blue background for current date
+                  : 'rgba(255, 255, 255, 0.7)', // Default white background
                   backdropFilter: 'blur(4px)',
                   '&:hover': {
                     backgroundColor: 'rgba(255, 255, 255, 0.9)'

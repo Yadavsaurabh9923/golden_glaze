@@ -80,10 +80,10 @@ const InvoiceDocument = ({ booking }) => (
       </View>
 
       <View style={styles.section}>
-        <Text style={{ marginBottom: 8 }}>Bill To:</Text>
+        <Text style={{ marginBottom: 8, fontWeight: 'bold'}}>Bill To:</Text>
         <Text>Name: {booking.name}</Text>
         <Text>Phone: {booking.phone_number}</Text>
-        <Text>Email: {booking.email}</Text>
+        <Text>Email: {booking.email === 'noemail@example.com' ? '-' : booking.email}</Text>
       </View>
 
       <View style={styles.table}>

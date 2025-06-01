@@ -123,7 +123,7 @@ export default function PaymentSuccess() {
               Show Bookings
             </Button>
             </Link>
-            <Link href="/your-bookings">
+            <Link href="/">
             <Button 
               startDecorator={<HomeRoundedIcon />}
               variant="outlined"

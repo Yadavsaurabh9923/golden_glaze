@@ -93,8 +93,37 @@ const generateTimeSlots = (start, end, bookedSlots = [], heldSlots = [], slotPri
   return timeSlots;
 };
 
+// Read from localStorage with expiry check
+const loadWithExpiry = (key) => {
+  const itemStr = localStorage.getItem(key);
+  if (!itemStr) return null;
+
+  try {
+    const item = JSON.parse(itemStr);
+    if (Date.now() > item.expiry) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return item.value;
+  } catch {
+    return null;
+  }
+};
+
+const getInitialTabIndex = () => {
+  const savedIndex = loadWithExpiry('selectedTabIndex');
+  if (savedIndex !== null) {
+    return parseInt(savedIndex, 10);
+  }
+
+  const hour = new Date().getHours();
+  if (hour >= 0 && hour < 12) return 0;
+  else if (hour >= 12 && hour < 18) return 1;
+  else return 2;
+};
+
 export default function SlotSelector({startTime, endTime, selectedSlots, onSlotSelection, slotPrices, bookedSlots, heldSlots, selectedDate}) {
-  const [index, setIndex] = React.useState(0);
+  const [index, setIndex] = React.useState(getInitialTabIndex());
   // Generate Time Slots
   const [timeSlots, setTimeSlots] = React.useState(generateTimeSlots(startTime, endTime, bookedSlots, heldSlots, slotPrices, selectedDate));
 
@@ -113,12 +142,23 @@ export default function SlotSelector({startTime, endTime, selectedSlots, onSlotS
     );
   };
 
+  const handleTabChange = (event, newIndex) => {
+    setIndex(newIndex);
+    
+    const dataToStore = {
+      value: newIndex,
+      expiry: Date.now() + 2 * 60 * 1000, // 2 minutes from now
+    };
+
+    localStorage.setItem("selectedTabIndex", JSON.stringify(dataToStore));
+  };
+
   return (
     <Box sx={{ flexGrow: 1, m: -2, overflowX: 'hidden' }}>
       <Tabs
         aria-label="Pipeline"
         value={index}
-        onChange={(event, value) => setIndex(value)}
+        onChange={handleTabChange}
       >
         <TabList
           sx={{

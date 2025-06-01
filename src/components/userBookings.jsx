@@ -17,6 +17,7 @@ import { BASE_URL, env } from './BaseConfig';
 import Cookies from 'js-cookie';
 import DownloadIcon from '@mui/icons-material/Download';
 import InvoiceDownloadButton from './InvoiceDownloadButton';
+import IndividualBooking from './IndividualBooking'
 
 export default function UserBookings() {
   const [bookings, setBookings] = useState([]);
@@ -96,28 +97,32 @@ export default function UserBookings() {
     return `${displayHour}:${displayMinutes} ${period}`;
   }
 
-  const filterUpcomingSlots = (slots) => {
+  function filterUpcomingSlots(slots) {
     const now = new Date();
-
+  
     return slots
-      .map((slot) => {
+      .filter(slot => {
         const [day, month, year] = slot.date.split('-');
-        const slotDateTime = new Date(`${year}-${month}-${day}T${String(slot.start_time).padStart(2, '0')}:00:00`);
-        return { ...slot, slotDateTime };
+        const slotDate = new Date(`${year}-${month}-${day}T00:00:00`);
+  
+        // Keep slots from today or future dates
+        return slotDate >= new Date(now.toDateString());
       })
-      .filter((slot) => slot.slotDateTime > now)
-      .sort((a, b) => a.slotDateTime - b.slotDateTime);
-  };
-
-  const fieldsToShow = [
-    { label: 'Status', key: 'status' },
-    { label: 'Date', key: 'date' },
-    { label: 'Name', key: 'name' },
-    { label: 'Phone', key: 'phone_number' },
-    { label: 'Email', key: 'email' },
-    { label: 'Amount', key: 'amount' },
-    { label: 'ID', key: 'transaction_id' },
-  ];
+      .sort((a, b) => {
+        // First sort by date
+        const [dayA, monthA, yearA] = a.date.split('-');
+        const [dayB, monthB, yearB] = b.date.split('-');
+        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
+        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
+  
+        if (dateA < dateB) return -1;
+        if (dateA > dateB) return 1;
+  
+        // If same date, sort by start_time
+        return a.start_time - b.start_time;
+      });
+  }
+  
 
   return (
     <>
@@ -142,15 +147,17 @@ export default function UserBookings() {
           }}
         >
           <Typography
-            level="h1"
+            level="h2"
+            // variant='outlined'
             sx={{
-              color: 'primary.700',
-              mb: 2,
-              fontSize: { xs: 'xl4', md: 'xl4' },
-              fontWeight: 'md',
+              color: 'primary.500',
+              mb: 1,
+              mt:1,
+              fontSize: { xs: 'xl3', md: 'xl2' },
+              fontWeight: 'lg',
             }}
           >
-            Your Bookings
+            YOUR BOOKINGS
           </Typography>
 
           <FormControl
@@ -169,6 +176,7 @@ export default function UserBookings() {
                 </Button>
               }
               placeholder="Phone Number"
+              type="tel"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
@@ -201,7 +209,7 @@ export default function UserBookings() {
             level="body-lg"
             sx={{
               textAlign: 'center',
-              py: 4,
+              py: 3,
               color: 'neutral.500',
             }}
           >
@@ -213,83 +221,23 @@ export default function UserBookings() {
               width: '100%',
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-              gap: 3,
+              gap: 2,
             }}
           >
             {filterUpcomingSlots(bookings).map((booking) => (
-              <Card
-                key={booking.id}
-                variant="outlined"
-                sx={{
-                  borderRadius: 'md',
-                  boxShadow: 'sm',
-                  bgcolor: 'background.body',
-                  p: 2.5,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <AccessTimeIcon sx={{ color: 'primary.500' }} />
-                  <Typography level="title-lg" sx={{ color: 'neutral.800' }}>
-                    {formatHour(booking.start_time)} - {formatHour(booking.end_time)}
-                  </Typography>
-                </Box>
-
-                <Divider />
-
-                <List size="sm" sx={{ '--ListItem-paddingY': '6px' }}>
-                  {fieldsToShow.map((field) => {
-                    if (field.key === 'email' && booking[field.key] === 'noemail@example.com') {
-                      return null;
-                    }
-
-                    return (
-                      <ListItem key={field.key}>
-                        <Typography
-                          level="body-sm"
-                          sx={{
-                            minWidth: 60,
-                            color: 'neutral.600',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                          }}
-                        >
-                          {field.label}:
-                        </Typography>
-                        {field.key === 'status' ? (
-                          <Chip
-                            size="sm"
-                            color={statusColors[booking.status] || 'neutral'}
-                            sx={{ borderRadius: 'sm' }}
-                          >
-                            {booking[field.key]}
-                          </Chip>
-                        ) : (
-                          <Typography level="body-md" sx={{ color: 'neutral.800' }}>
-                            {field.key === 'amount' ? `₹ ${booking[field.key]}` : booking[field.key]}
-                          </Typography>
-                        )}
-                      </ListItem>
-                    );
-                  })}
-                </List>
-
-                <InvoiceDownloadButton
-                  booking={{
-                    startTime: formatHour(booking.start_time),
-                    endTime: formatHour(booking.end_time),
-                    status: booking.status,
-                    date: booking.date,
-                    name: booking.name,
-                    phone_number: booking.phone_number,
-                    email: booking.email,
-                    transaction_id: booking.transaction_id,
-                    amount: booking.amount,
-                  }}
-                >
-                  <DownloadIcon sx={{ mr: 1 }} />
-                  Invoice
-                </InvoiceDownloadButton>
-              </Card>
+              <IndividualBooking booking={{
+                startTime: formatHour(booking.start_time),
+                endTime: formatHour(booking.end_time),
+                status: booking.status,
+                date: booking.date,
+                name: booking.name,
+                phone_number: booking.phone_number,
+                email: booking.email,
+                transaction_id: booking.transaction_id,
+                amount: booking.amount,
+                booking_time: booking.booking_time,
+              }}></IndividualBooking>
+              
             ))}
           </Box>
         )}
