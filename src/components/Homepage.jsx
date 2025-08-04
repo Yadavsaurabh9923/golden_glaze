@@ -76,7 +76,7 @@ export default function BasicGrid() {
       try {
         const [configsResponse, bookingsResponse, ratesResponse] = await Promise.all([
           fetch(`${BASE_URL}/${env}/get_configs/`),
-          fetch(`${BASE_URL}/${env}/get_all_bookings/`),
+          fetch(`${BASE_URL}/${env}/get_all_upcoming_bookings/`),
           fetch(`${BASE_URL}/${env}/get_rates/`)
         ]);
         
@@ -107,7 +107,7 @@ export default function BasicGrid() {
         setBookings(bookingsData.data);  // Add state: const [bookings, setBookings] = useState([])
 
         const weekdayRates = {
-          Morning: Number(ratesData.data.find(c => c.session === 'WEEKDAY_MORNING_RATE')?.rate) || 500,
+          Morning: Number(ratesData.data.find(c => c.session === 'WEEKDAY_MORNING_RATE')?.rate) || 900,
           Afternoon: Number(ratesData.data.find(c => c.session === 'WEEKDAY_AFTERNOON_RATE')?.rate) || 500,
           Night: Number(ratesData.data.find(c => c.session === 'WEEKDAY_NIGHT_RATE')?.rate) || 500,
         };
