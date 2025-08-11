@@ -248,8 +248,8 @@ const handlePayment = async (createBookingData, insertedId) => {
   }
 
   const options = {
-    // key: RAZORPAY_LIVE_KEY, // Replace with your actual Razorpay API Key ORignal Key
-    key: RAZORPAY_TEST_KEY,
+    key: RAZORPAY_LIVE_KEY, // Replace with your actual Razorpay API Key ORignal Key
+    // key: RAZORPAY_TEST_KEY,
     amount: totalPrice * 100, // Use totalPrice prop instead of slotDetails
     currency: "INR",
     name: "Golden Glaze Turf",
