@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { CssVarsProvider } from '@mui/joy/styles'
 import BasicGrid from './components/Homepage'
 import React from 'react'

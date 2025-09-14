@@ -1,5 +1,5 @@
 // Mandatory Pages Last Updated Config Value
-export const last_updated = "1 May, 2025"
+export const last_updated = "1 August, 2025"
 
 // Mandatory Pages Support Email Config Value
 export const support_email = "goldenglaze07@gmail.com"
