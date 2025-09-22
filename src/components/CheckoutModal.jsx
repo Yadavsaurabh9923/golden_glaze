@@ -21,7 +21,7 @@ import AlertWithDecorators from './ErrorAlert'
 import { useNavigate } from 'react-router-dom'; // For routing
 import {BASE_URL, env} from '../components/BaseConfig'
 import LinearProgress from '@mui/joy/LinearProgress';
-import {RAZORPAY_LIVE_KEY,RAZORPAY_TEST_KEY, PAYMENT_TIMEOUT} from './BaseConfig'
+import {RAZORPAY_LIVE_KEY,RAZORPAY_TEST_KEY, PAYMENT_TIMEOUT, PRIVATE_ADMIN_PHONE_NUMBERS, ADMIN_PAYMENT_PASSWORD} from './BaseConfig'
 
 export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice, slotPrices, selectedDate}) {
   const [name, setName] = React.useState('');
@@ -97,7 +97,21 @@ export default function CheckoutModal({ open, onClose, selectedSlots, totalPrice
         setAlertBox(true);
         throw new Error("Booking data or response ID is invalid");
       } else {
-        await handlePayment(bookingData, responseData.data.insertedId);
+        if(PRIVATE_ADMIN_PHONE_NUMBERS.includes(phone)){
+          const password = window.prompt("Administrator Detected!\n\nAre you sure you want to confirm this booking without payment? \nEnter the Admin password:");
+          if (password === ADMIN_PAYMENT_PASSWORD){
+            await handlePaymentViaAdmin(bookingData, responseData.data.insertedId);
+            navigate(`/payment-success?transactionId=${transactionId}`);
+          }
+          else{
+            await cancelBooking(bookingData, responseData.data.insertedId);
+            setIsLoading(false);
+            return;
+          }
+        }
+        else{
+          await handlePayment(bookingData, responseData.data.insertedId);
+        }
       }
 
     }
@@ -292,6 +306,11 @@ const handlePayment = async (createBookingData, insertedId) => {
     setIsLoading(false);
   }
 };
+
+const handlePaymentViaAdmin = async (createBookingData, insertedId) => {
+    await confirmBooking(createBookingData, insertedId);
+    navigate(`/payment-success?transactionId=${transactionId}`);
+}
 
 
 return (

@@ -16,3 +16,14 @@ export const RAZORPAY_TEST_KEY = 'rzp_test_kuhZJZX5qOQ9QQ'
 
 // ------------------------------------------------------------------------------------------
 export const PAYMENT_TIMEOUT = 120 // 2 mins = 60*2
+
+// ------------------------------------------------------------------------------------------
+
+export const PRIVATE_ADMIN_PHONE_NUMBERS = [
+  "7038796452",
+  "9552990367"
+]
+
+// ------------------------------------------------------------------------------------------
+
+export const ADMIN_PAYMENT_PASSWORD = "803537" // Change this password and share only with admins
