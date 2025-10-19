@@ -44,9 +44,9 @@ export default function UserBookings() {
       setTimeout(() => setAlertState(false), 4000);
       return;
     }
-  
+
     if (!searchTerm.trim()) return;
-  
+
     setIsLoading(true);
     try {
       const response = await fetch(`${BASE_URL}/${env}/get_bookings_by_phone/`, {
@@ -58,16 +58,16 @@ export default function UserBookings() {
           phone_number: searchTerm,
         }),
       });
-  
+      console.log(response)
       if (!response.ok) {
         setBookings([]);
         setAlertMessage('No bookings found.');
         setAlertState(true);
         setTimeout(() => setAlertState(false), 4000);
       }
-  
+
       const data = await response.json();
-  
+
       if (data.data.length < 1) {
         setBookings([]);
         setAlertMessage('No bookings found.');
@@ -75,7 +75,7 @@ export default function UserBookings() {
         setTimeout(() => setAlertState(false), 4000);
         return;
       }
-  
+
       setBookings(data.data);
     } catch (error) {
       setAlertMessage('Error fetching bookings.');
@@ -87,7 +87,7 @@ export default function UserBookings() {
       setIsLoading(false);
     }
   };
-  
+
   function formatHour(decimalHour) {
     const hour = Math.floor(decimalHour);
     const minutes = Math.round((decimalHour - hour) * 60);
@@ -98,31 +98,18 @@ export default function UserBookings() {
   }
 
   function filterUpcomingSlots(slots) {
-    const now = new Date();
-  
-    return slots
-      .filter(slot => {
-        const [day, month, year] = slot.date.split('-');
-        const slotDate = new Date(`${year}-${month}-${day}T00:00:00`);
-  
-        // Keep slots from today or future dates
-        return slotDate >= new Date(now.toDateString());
-      })
-      .sort((a, b) => {
-        // First sort by date
-        const [dayA, monthA, yearA] = a.date.split('-');
-        const [dayB, monthB, yearB] = b.date.split('-');
-        const dateA = new Date(`${yearA}-${monthA}-${dayA}`);
-        const dateB = new Date(`${yearB}-${monthB}-${dayB}`);
-  
-        if (dateA < dateB) return -1;
-        if (dateA > dateB) return 1;
-  
-        // If same date, sort by start_time
-        return a.start_time - b.start_time;
-      });
-  }
-  
+  const parseDate = (d) => {
+    const [day, month, year] = d.split("-");
+    return new Date(`${year}-${month}-${day}T00:00:00Z`);
+  };
+
+  return slots.sort((a, b) => {
+    const dateA = parseDate(a.date).getTime() + a.start_time * 3600000;
+    const dateB = parseDate(b.date).getTime() + b.start_time * 3600000;
+    return dateB - dateA; // latest booking first
+  });
+}
+
 
   return (
     <>
@@ -152,7 +139,7 @@ export default function UserBookings() {
             sx={{
               color: 'primary.500',
               mb: 1,
-              mt:1,
+              mt: 1,
               fontSize: { xs: 'xl3', md: 'xl2' },
               fontWeight: 'lg',
             }}
@@ -237,7 +224,7 @@ export default function UserBookings() {
                 amount: booking.amount,
                 booking_time: booking.booking_time,
               }}></IndividualBooking>
-              
+
             ))}
           </Box>
         )}
