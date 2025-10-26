@@ -13,6 +13,7 @@ import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed'
 import customTheme from './components/customTheme'
 import Admin from './components/Admin'
+import { Analytics } from "@vercel/analytics/next"
 
 function App() {
   return (
