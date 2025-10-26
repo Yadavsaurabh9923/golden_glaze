@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { CssVarsProvider } from '@mui/joy/styles'
 import BasicGrid from './components/Homepage'
 import React from 'react'
@@ -14,6 +13,7 @@ import PaymentFailed from './components/PaymentFailed'
 import customTheme from './components/customTheme'
 import Admin from './components/Admin'
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 function App() {
   return (
@@ -31,6 +31,7 @@ function App() {
         <Route path="/Admin-Golden-Glaze-0367" element={<Admin />} />
       </Routes>
       <Analytics />
+      <SpeedInsights />
     </CssVarsProvider>
   )
 }
