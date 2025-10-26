@@ -13,7 +13,7 @@ import PaymentSuccess from './components/PaymentSuccess';
 import PaymentFailed from './components/PaymentFailed'
 import customTheme from './components/customTheme'
 import Admin from './components/Admin'
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react";
 
 function App() {
   return (
@@ -30,6 +30,7 @@ function App() {
         <Route path="/payment-failed" element={<PaymentFailed />} />
         <Route path="/Admin-Golden-Glaze-0367" element={<Admin />} />
       </Routes>
+      <Analytics />
     </CssVarsProvider>
   )
 }
